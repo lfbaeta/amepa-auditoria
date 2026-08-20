@@ -190,11 +190,15 @@ function SectorDialog({
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [isCritical, setIsCritical] = useState(initial?.isCritical ?? false);
+  const { specialtyId } = Route.useSearch();
   const createFn = useServerFn(createSector);
   const mut = useMutation({
     mutationFn: async () => {
       if (initial && onUpdate) { await onUpdate({ name, description, isCritical }); }
-      else { await createFn({ data: { name, description: description || null, isCritical } }); }
+      else { 
+        if (!specialtyId) throw new Error("Selecione uma especialidade primeiro.");
+        await createFn({ data: { name, description: description || null, isCritical, specialtyId } }); 
+      }
     },
     onSuccess: () => { setOpen(false); if (!initial) { setName(""); setDescription(""); setIsCritical(false); } onSaved(); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
