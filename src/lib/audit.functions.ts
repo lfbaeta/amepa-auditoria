@@ -136,6 +136,7 @@ export const importBackupData = createServerFn({ method: "POST" })
             is_critical: s.is_critical ?? false,
             sort_order: s.sort_order ?? 999,
             user_id: context.userId,
+            specialty_id: targetSpecId,
           })
           .select("id").single();
         if (error) throw new Error(error.message);
