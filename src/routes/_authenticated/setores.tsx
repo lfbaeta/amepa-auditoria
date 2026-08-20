@@ -29,10 +29,14 @@ export const Route = createFileRoute("/_authenticated/setores")({
 function SetoresPage() {
   const { specialtyId } = Route.useSearch();
   const fetchSectors = useServerFn(listSectors);
+  const fetchSpecs = useServerFn(listSpecialties);
   const startFn = useServerFn(startAudit);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({ queryKey: ["sectors", specialtyId], queryFn: () => fetchSectors({ data: { specialtyId } }) });
+  const { data: specialties } = useQuery({ queryKey: ["specialties"], queryFn: () => fetchSpecs() });
+
+  const selectedSpec = specialties?.find(s => s.id === specialtyId);
   const [openId, setOpenId] = useState<string | null>(null);
   const [auditor, setAuditor] = useState("");
   const [responsible, setResponsible] = useState("");
