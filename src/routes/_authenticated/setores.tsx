@@ -6,21 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, ChevronRight, ClipboardCheck, Loader2, AlertTriangle } from "lucide-react";
+import { Settings, ChevronRight, ClipboardCheck, Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_authenticated/setores")({
+  validateSearch: z.object({
+    specialtyId: z.string().uuid().optional(),
+  }),
   component: SetoresPage,
   head: () => ({ meta: [{ title: "Setores — Auditorias SCIRAS" }] }),
 });
 
 function SetoresPage() {
+  const { specialtyId } = Route.useSearch();
   const fetchSectors = useServerFn(listSectors);
   const startFn = useServerFn(startAudit);
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { data, isLoading } = useQuery({ queryKey: ["sectors"], queryFn: () => fetchSectors() });
+  const { data, isLoading } = useQuery({ queryKey: ["sectors", specialtyId], queryFn: () => fetchSectors({ data: { specialtyId } }) });
   const [openId, setOpenId] = useState<string | null>(null);
   const [auditor, setAuditor] = useState("");
   const [responsible, setResponsible] = useState("");
