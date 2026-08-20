@@ -8,9 +8,14 @@ const uuid = z.string().uuid();
 export const exportBackupData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { data: specialties, error: spe } = await context.supabase
+      .from("specialties")
+      .select("id, name, description, icon, sort_order")
+      .order("sort_order", { ascending: true });
+    if (spe) throw new Error(spe.message);
     const { data: sectors, error: se } = await context.supabase
       .from("sectors")
-      .select("id, name, description, icon, is_default, is_critical, sort_order")
+      .select("id, specialty_id, name, description, icon, is_default, is_critical, sort_order")
       .order("sort_order", { ascending: true });
     if (se) throw new Error(se.message);
     const { data: questions, error: qe } = await context.supabase
@@ -18,7 +23,7 @@ export const exportBackupData = createServerFn({ method: "GET" })
       .select("id, sector_id, code, text, sort_order, active")
       .order("sort_order", { ascending: true });
     if (qe) throw new Error(qe.message);
-    return { sectors: sectors ?? [], questions: questions ?? [] };
+    return { specialties: specialties ?? [], sectors: sectors ?? [], questions: questions ?? [] };
   });
 
 export const importBackupData = createServerFn({ method: "POST" })
