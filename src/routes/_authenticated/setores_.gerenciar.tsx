@@ -39,7 +39,7 @@ function ManagePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" asChild><Link to="/setores"><ArrowLeft className="h-5 w-5" /></Link></Button>
+        <Button variant="ghost" size="icon" asChild><Link to="/setores" search={{ specialtyId }}><ArrowLeft className="h-5 w-5" /></Link></Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">Gerenciar setores</h1>
         </div>
