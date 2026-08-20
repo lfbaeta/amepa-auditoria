@@ -42,12 +42,17 @@ function SetoresPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Setores</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Escolha o setor para iniciar uma nova auditoria.</p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild className="-ml-2">
+            <Link to="/especialidades"><ArrowLeft className="h-5 w-5" /></Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Setores</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Escolha o setor para iniciar uma nova auditoria.</p>
+          </div>
         </div>
         <Button asChild size="sm" variant="outline">
-          <Link to="/setores/gerenciar"><Settings className="h-4 w-4 mr-1.5" /> Configurações</Link>
+          <Link to="/setores/gerenciar" search={{ specialtyId }}><Settings className="h-4 w-4 mr-1.5" /> Configurações</Link>
         </Button>
       </div>
 
