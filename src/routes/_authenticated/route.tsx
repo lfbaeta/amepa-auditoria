@@ -44,7 +44,7 @@ function AuthedLayout() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ClipboardList className="h-4 w-4" />
             </div>
-            <span className="font-semibold text-sm tracking-tight">SCIRAS Auditorias</span>
+            <span className="font-semibold text-sm tracking-tight truncate max-w-[150px]">Gestor de Auditorias</span>
           </Link>
           <div className="flex items-center gap-1">
             <SettingsButton />
