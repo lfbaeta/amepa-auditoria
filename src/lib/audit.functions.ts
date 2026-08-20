@@ -264,32 +264,76 @@ export const importBackupData = createServerFn({ method: "POST" })
 export const listSpecialties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    // Obter o perfil para saber a organização
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("user_id", context.userId)
+      .single();
+
+    let query = context.supabase
       .from("specialties")
       .select("*")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
+    
+    // Se tiver organização, filtrar por ela. Se for auditor, talvez mostrar apenas ativas.
+    if (profile?.organization_id) {
+      query = query.eq("organization_id", profile.organization_id);
+      if (profile.role === "auditor") {
+        query = query.eq("active", true);
+      }
+    } else {
+      // Fallback para legado ou usuários sem organização vinculada
+      query = query.eq("user_id", context.userId);
+    }
+
+    const { data, error } = await query;
     if (error) throw new Error(error.message);
     return data ?? [];
   });
 
 export const createSpecialty = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { name: string; description?: string | null; icon?: string | null }) =>
+  .inputValidator((d: { 
+    name: string; 
+    description?: string | null; 
+    icon?: string | null;
+    code?: string | null;
+    color?: string | null;
+    isCritical?: boolean;
+    active?: boolean;
+  }) =>
     z.object({
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       icon: z.string().max(50).optional().nullable(),
+      code: z.string().max(20).optional().nullable(),
+      color: z.string().max(30).optional().nullable(),
+      isCritical: z.boolean().optional(),
+      active: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .single();
+
     const { data: row, error } = await context.supabase
       .from("specialties")
       .insert({
         name: data.name,
         description: data.description ?? null,
         icon: data.icon ?? null,
+        code: data.code ?? null,
+        color: data.color ?? null,
+        is_critical: data.isCritical ?? false,
+        active: data.active ?? true,
         user_id: context.userId,
+        created_by: context.userId,
+        organization_id: profile?.organization_id ?? null,
         sort_order: 999,
       })
       .select()
@@ -300,12 +344,25 @@ export const createSpecialty = createServerFn({ method: "POST" })
 
 export const updateSpecialty = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; name: string; description?: string | null; icon?: string | null }) =>
+  .inputValidator((d: { 
+    id: string; 
+    name: string; 
+    description?: string | null; 
+    icon?: string | null;
+    code?: string | null;
+    color?: string | null;
+    isCritical?: boolean;
+    active?: boolean;
+  }) =>
     z.object({
       id: uuid,
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       icon: z.string().max(50).optional().nullable(),
+      code: z.string().max(20).optional().nullable(),
+      color: z.string().max(30).optional().nullable(),
+      isCritical: z.boolean().optional(),
+      active: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -315,6 +372,11 @@ export const updateSpecialty = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description ?? null,
         icon: data.icon ?? null,
+        code: data.code ?? null,
+        color: data.color ?? null,
+        is_critical: data.isCritical,
+        active: data.active,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -325,6 +387,16 @@ export const deleteSpecialty = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
+    // Verificar se existem auditorias vinculadas (regra: excluir apenas sem histórico)
+    const { count } = await context.supabase
+      .from("audits")
+      .select("id", { count: "exact", head: true })
+      .eq("specialty_id", data.id);
+    
+    if (count && count > 0) {
+      throw new Error("Não é possível excluir uma especialidade que já possui auditorias registradas. Desative-a em vez disso.");
+    }
+
     const { error } = await context.supabase.from("specialties").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
