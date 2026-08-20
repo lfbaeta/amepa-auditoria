@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getDashboardStats, listAudits } from "@/lib/audit.functions";
+import { getDashboardStats, listAudits, listSpecialties } from "@/lib/audit.functions";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { AlertTriangle, BarChart3, ClipboardCheck, Download, FileText, Pencil, Plus, RotateCcw, Save, TrendingUp, X } from "lucide-react";
+import { AlertTriangle, BarChart3, ClipboardCheck, Download, FileText, Pencil, Plus, RotateCcw, Save, TrendingUp, X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useMemo, useState } from "react";
 import { buildCriticalAnalysis, generateCriticalReportPdf } from "@/lib/pdf";
 import { toast } from "sonner";
