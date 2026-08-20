@@ -96,6 +96,27 @@ export const importBackupData = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    // 1. Garantir que o usuário tem pelo menos uma especialidade (para que os setores importados fiquem visíveis)
+    const { data: specs } = await context.supabase.from("specialties").select("id").limit(1);
+    let targetSpecId: string;
+    
+    if (!specs || specs.length === 0) {
+      const { data: newSpec, error: speErr } = await context.supabase
+        .from("specialties")
+        .insert({
+          user_id: context.userId,
+          name: "Importado",
+          description: "Especialidade criada automaticamente durante a importação.",
+          icon: "briefcase",
+        })
+        .select()
+        .single();
+      if (speErr) throw new Error("Erro ao criar especialidade para importação: " + speErr.message);
+      targetSpecId = newSpec.id;
+    } else {
+      targetSpecId = specs[0].id;
+    }
+
     const { data: existing } = await context.supabase.from("sectors").select("id, name");
     const byName = new Map((existing ?? []).map((s) => [s.name.toLowerCase(), s.id]));
     let sectorsCreated = 0;
