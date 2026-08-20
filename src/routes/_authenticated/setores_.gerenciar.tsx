@@ -20,16 +20,21 @@ import { Switch } from "@/components/ui/switch";
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_authenticated/setores_/gerenciar")({
+  validateSearch: z.object({
+    specialtyId: z.string().uuid().optional(),
+  }),
   component: ManagePage,
   head: () => ({ meta: [{ title: "Gerenciar setores — Auditorias SCIRAS" }] }),
 });
 
 function ManagePage() {
+  const { specialtyId } = Route.useSearch();
   const qc = useQueryClient();
   const fetchSectors = useServerFn(listSectors);
-  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchSectors() });
+  const sectors = useQuery({ queryKey: ["sectors", specialtyId], queryFn: () => fetchSectors({ data: { specialtyId } }) });
 
   return (
     <div className="space-y-4">
