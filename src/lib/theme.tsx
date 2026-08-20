@@ -6,16 +6,16 @@ import { Settings, Check } from "lucide-react";
 export type Palette = {
   id: string;
   name: string;
-  bg: string; // background swatch
-  primary: string; // primary swatch
-  fg: string; // foreground swatch
+  bg: string;
+  primary: string;
+  fg: string;
   vars: Record<string, string>;
 };
 
 export const PALETTES: Palette[] = [
   {
     id: "arctic",
-    name: "Arctic (padrão)",
+    name: "Arctic",
     bg: "#ffffff",
     primary: "#2B7FE0",
     fg: "#0f172a",
@@ -45,7 +45,7 @@ export const PALETTES: Palette[] = [
   },
   {
     id: "forest",
-    name: "Verde Floresta",
+    name: "Forest",
     bg: "#f6faf6",
     primary: "#16a34a",
     fg: "#14352a",
@@ -60,7 +60,7 @@ export const PALETTES: Palette[] = [
   },
   {
     id: "sunset",
-    name: "Pôr do Sol",
+    name: "Sunset",
     bg: "#fff7ed",
     primary: "#ea580c",
     fg: "#3b1a06",
@@ -75,7 +75,7 @@ export const PALETTES: Palette[] = [
   },
   {
     id: "rose",
-    name: "Rosé",
+    name: "Rose",
     bg: "#fff5f7",
     primary: "#db2777",
     fg: "#3b0d20",
@@ -90,7 +90,7 @@ export const PALETTES: Palette[] = [
   },
   {
     id: "graphite",
-    name: "Grafite",
+    name: "Graphite",
     bg: "#111827",
     primary: "#e5e7eb",
     fg: "#f9fafb",
