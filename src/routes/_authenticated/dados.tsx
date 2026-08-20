@@ -25,7 +25,7 @@ function DadosPage() {
   const fetchBackup = useServerFn(exportBackupData);
   const importFn = useServerFn(importBackupData);
   const audits = useQuery({ queryKey: ["audits"], queryFn: () => fetchA() });
-  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchS() });
+  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchS({ data: {} }) });
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
