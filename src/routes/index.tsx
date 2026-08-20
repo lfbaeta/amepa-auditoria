@@ -54,26 +54,44 @@ function WelcomePage() {
         </div>
 
         <h1 className="mt-6 text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-          Seja Bem Vindo
+          Seja Bem-vindo
         </h1>
         <p className="mt-2 text-xl font-semibold text-primary">
           à Auditoria AME
         </p>
         <p className="mt-4 text-sm text-muted-foreground max-w-sm mx-auto">
-          Sistema de gestão de auditorias internas SCIRAS — registre não conformidades, acompanhe indicadores e gere relatórios em PDF.
+          Sistema de gestão de auditorias técnicas e acompanhamento de indicadores hospitalares.
         </p>
 
-        <Button
-          size="lg"
-          className="mt-8 h-12 px-8 text-base shadow-md"
-          onClick={() => navigate({ to: "/auth" })}
-        >
-          Entrar no sistema
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        <div className="mt-8 flex flex-col gap-3">
+          <Button
+            size="lg"
+            className="h-12 px-8 text-base shadow-md"
+            onClick={() => navigate({ to: "/auth" })}
+          >
+            Acessar sistema
+          </Button>
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-11"
+              onClick={() => navigate({ to: "/auth", search: { mode: "login" } })}
+            >
+              Entrar
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 h-11"
+              onClick={() => navigate({ to: "/auth", search: { mode: "signup" } })}
+            >
+              Criar conta
+            </Button>
+          </div>
+        </div>
 
         <p className="mt-10 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} SCIRAS · Auditoria AME
+          © {new Date().getFullYear()} Auditoria AME
         </p>
       </div>
     </div>
