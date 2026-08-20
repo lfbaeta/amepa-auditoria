@@ -63,7 +63,7 @@ function AuthedLayout() {
         <div className="mx-auto grid max-w-3xl grid-cols-5">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+            const active = location.pathname === item.to || (item.to !== "/painel" && location.pathname.startsWith(item.to + "/")) || (item.to === "/especialidades" && location.pathname.startsWith("/setores"));
             return (
               <Link
                 key={item.to}

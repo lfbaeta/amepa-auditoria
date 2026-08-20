@@ -6,10 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, ChevronRight, ClipboardCheck, Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Settings, ChevronRight, ClipboardCheck, Loader2, AlertTriangle, ArrowLeft, Stethoscope, Wrench, Shield, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+
+const ICON_MAP: Record<string, any> = {
+  stethoscope: Stethoscope,
+  wrench: Wrench,
+  shield: Shield,
+  briefcase: Briefcase,
+};
 
 export const Route = createFileRoute("/_authenticated/setores")({
   validateSearch: z.object({
@@ -66,7 +73,9 @@ function SetoresPage() {
                 <DialogTrigger asChild>
                   <button className={`w-full text-left rounded-2xl border bg-card p-4 hover:shadow-sm transition-all flex items-center gap-3 ${s.is_critical ? "border-destructive/40 hover:border-destructive" : "hover:border-primary/40"}`}>
                     <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${s.is_critical ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}`}>
-                      {s.is_critical ? <AlertTriangle className="h-5 w-5" /> : <ClipboardCheck className="h-5 w-5" />}
+                      {s.is_critical ? <AlertTriangle className="h-5 w-5" /> : (s.icon && ICON_MAP[s.icon] ? 
+                        (() => { const Icon = ICON_MAP[s.icon!]; return <Icon className="h-5 w-5" />; })() 
+                        : <ClipboardCheck className="h-5 w-5" />)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
