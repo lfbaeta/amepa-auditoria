@@ -238,26 +238,105 @@ export const importBackupData = createServerFn({ method: "POST" })
     return { sectorsCreated, questionsCreated, auditsCreated, responsesCreated };
   });
 
-// ---------- Sectors ----------
-export const listSectors = createServerFn({ method: "GET" })
+// ---------- Specialties ----------
+export const listSpecialties = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
-      .from("sectors")
-      .select("id, name, description, icon, is_default, is_critical, sort_order")
+      .from("specialties")
+      .select("*")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
 
+export const createSpecialty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { name: string; description?: string | null; icon?: string | null }) =>
+    z.object({
+      name: z.string().min(1).max(120),
+      description: z.string().max(500).optional().nullable(),
+      icon: z.string().max(50).optional().nullable(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("specialties")
+      .insert({
+        name: data.name,
+        description: data.description ?? null,
+        icon: data.icon ?? null,
+        user_id: context.userId,
+        sort_order: 999,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const updateSpecialty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; name: string; description?: string | null; icon?: string | null }) =>
+    z.object({
+      id: uuid,
+      name: z.string().min(1).max(120),
+      description: z.string().max(500).optional().nullable(),
+      icon: z.string().max(50).optional().nullable(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("specialties")
+      .update({
+        name: data.name,
+        description: data.description ?? null,
+        icon: data.icon ?? null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteSpecialty = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: uuid }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("specialties").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------- Sectors ----------
+export const listSectors = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { specialtyId?: string }) => z.object({ specialtyId: uuid.optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    let query = context.supabase
+      .from("sectors")
+      .select("id, name, description, icon, is_default, is_critical, sort_order, specialty_id");
+    
+    if (data.specialtyId) {
+      query = query.eq("specialty_id", data.specialtyId);
+    }
+
+    const { data: rows, error } = await query
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+      
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
 export const createSector = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { name: string; description?: string | null; isCritical?: boolean }) =>
+  .inputValidator((d: { name: string; description?: string | null; isCritical?: boolean; specialtyId: string }) =>
     z.object({
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       isCritical: z.boolean().optional(),
+      specialtyId: uuid,
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -267,6 +346,7 @@ export const createSector = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description ?? null,
         user_id: context.userId,
+        specialty_id: data.specialtyId,
         sort_order: 999,
         is_critical: data.isCritical ?? false,
       })
@@ -278,20 +358,23 @@ export const createSector = createServerFn({ method: "POST" })
 
 export const updateSector = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id: string; name: string; description?: string | null; isCritical?: boolean }) =>
+  .inputValidator((d: { id: string; name: string; description?: string | null; isCritical?: boolean; specialtyId?: string }) =>
     z.object({
       id: uuid,
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       isCritical: z.boolean().optional(),
+      specialtyId: uuid.optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const patch: { name: string; description: string | null; is_critical?: boolean } = {
+    const patch: any = {
       name: data.name,
       description: data.description ?? null,
     };
     if (data.isCritical !== undefined) patch.is_critical = data.isCritical;
+    if (data.specialtyId !== undefined) patch.specialty_id = data.specialtyId;
+    
     const { error } = await context.supabase.from("sectors").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
