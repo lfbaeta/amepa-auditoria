@@ -20,14 +20,20 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 function Dashboard() {
   const [days, setDays] = useState(30);
+  const [specialtyId, setSpecialtyId] = useState<string>("all");
+  
   const getStats = useServerFn(getDashboardStats);
   const getAudits = useServerFn(listAudits);
+  const getSpecs = useServerFn(listSpecialties);
 
   const stats = useQuery({
-    queryKey: ["dashboard", days],
-    queryFn: () => getStats({ data: { days } }),
+    queryKey: ["dashboard", days, specialtyId],
+    queryFn: () => getStats({ data: { days, specialtyId: specialtyId === "all" ? undefined : specialtyId } }),
   });
   const audits = useQuery({ queryKey: ["audits"], queryFn: () => getAudits() });
+  const specialties = useQuery({ queryKey: ["specialties"], queryFn: () => getSpecs() });
+
+  const currentSpecialty = specialties.data?.find(s => s.id === specialtyId);
 
   const rows = stats.data?.rows ?? [];
   const overall = stats.data?.overallScore;
