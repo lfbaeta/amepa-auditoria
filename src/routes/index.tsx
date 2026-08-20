@@ -24,7 +24,7 @@ function WelcomePage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        navigate({ to: "/painel", replace: true });
+        navigate({ to: "/especialidades", replace: true });
       } else {
         setChecking(false);
         requestAnimationFrame(() => setVisible(true));

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAudits, listSectors, deleteAudit } from "@/lib/audit.functions";
+import { listAudits, listSectors, deleteAudit, listSpecialties } from "@/lib/audit.functions";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -21,11 +21,20 @@ export const Route = createFileRoute("/_authenticated/historico")({
 function HistoricoPage() {
   const fetchA = useServerFn(listAudits);
   const fetchS = useServerFn(listSectors);
+  const fetchSpecs = useServerFn(listSpecialties);
+  
   const audits = useQuery({ queryKey: ["audits"], queryFn: () => fetchA() });
-  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchS() });
+  const specialties = useQuery({ queryKey: ["specialties"], queryFn: () => fetchSpecs() });
+  
+  const [specialtyId, setSpecialtyId] = useState<string>("all");
   const [sectorId, setSectorId] = useState<string>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+
+  const sectors = useQuery({ 
+    queryKey: ["sectors", specialtyId], 
+    queryFn: () => fetchS({ data: { specialtyId: specialtyId === "all" ? undefined : specialtyId } }) 
+  });
   const qc = useQueryClient();
   const del = useServerFn(deleteAudit);
   const removeMut = useMutation({
@@ -39,12 +48,21 @@ function HistoricoPage() {
 
   const filtered = useMemo(() => {
     return (audits.data ?? []).filter((a) => {
+      // If a specialty is selected, filter by it. 
+      // Note: the audits list contains sector names but not specialty info directly.
+      // We rely on the sectors query to check which sector belongs to which specialty.
+      if (specialtyId !== "all") {
+        const sector = sectors.data?.find(s => s.id === a.sector_id);
+        if (sector && sector.specialty_id !== specialtyId) return false;
+        // If sector not found in the current filtered list of sectors, we still filter it out
+        if (!sector && sectors.data) return false;
+      }
       if (sectorId !== "all" && a.sector_id !== sectorId) return false;
       if (from && a.audit_date < from) return false;
       if (to && a.audit_date > to) return false;
       return true;
     });
-  }, [audits.data, sectorId, from, to]);
+  }, [audits.data, specialtyId, sectorId, from, to, sectors.data]);
 
   return (
     <div className="space-y-4">
@@ -53,8 +71,24 @@ function HistoricoPage() {
         <p className="text-sm text-muted-foreground mt-0.5">Auditorias realizadas, filtradas por data e setor.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="col-span-2">
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Select value={specialtyId} onValueChange={(val) => {
+            setSpecialtyId(val);
+            setSectorId("all");
+          }}>
+            <SelectTrigger>
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <SelectValue placeholder="Área" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as áreas</SelectItem>
+              {(specialties.data ?? []).map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
           <Select value={sectorId} onValueChange={setSectorId}>
             <SelectTrigger><SelectValue placeholder="Setor" /></SelectTrigger>
             <SelectContent>
@@ -63,8 +97,10 @@ function HistoricoPage() {
             </SelectContent>
           </Select>
         </div>
-        <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="De" />
-        <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Até" />
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} aria-label="De" />
+          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} aria-label="Até" />
+        </div>
       </div>
 
       {audits.isLoading ? (

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 const navItems = [
   { to: "/painel", label: "Painel", icon: Gauge },
-  { to: "/setores", label: "Setores", icon: ClipboardList },
+  { to: "/especialidades", label: "Auditar", icon: ClipboardList },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/historico", label: "Histórico", icon: History },
   { to: "/dados", label: "Dados", icon: Database },
@@ -44,7 +44,7 @@ function AuthedLayout() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <ClipboardList className="h-4 w-4" />
             </div>
-            <span className="font-semibold text-sm tracking-tight">SCIRAS Auditorias</span>
+            <span className="font-semibold text-sm tracking-tight truncate max-w-[150px]">Gestor de Auditorias</span>
           </Link>
           <div className="flex items-center gap-1">
             <SettingsButton />
@@ -63,7 +63,7 @@ function AuthedLayout() {
         <div className="mx-auto grid max-w-3xl grid-cols-5">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = location.pathname === item.to || location.pathname.startsWith(item.to + "/");
+            const active = location.pathname === item.to || (item.to !== "/painel" && location.pathname.startsWith(item.to + "/")) || (item.to === "/especialidades" && location.pathname.startsWith("/setores"));
             return (
               <Link
                 key={item.to}

@@ -20,21 +20,26 @@ import { Switch } from "@/components/ui/switch";
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_authenticated/setores_/gerenciar")({
+  validateSearch: z.object({
+    specialtyId: z.string().uuid().optional(),
+  }),
   component: ManagePage,
   head: () => ({ meta: [{ title: "Gerenciar setores — Auditorias SCIRAS" }] }),
 });
 
 function ManagePage() {
+  const { specialtyId } = Route.useSearch();
   const qc = useQueryClient();
   const fetchSectors = useServerFn(listSectors);
-  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchSectors() });
+  const sectors = useQuery({ queryKey: ["sectors", specialtyId], queryFn: () => fetchSectors({ data: { specialtyId } }) });
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" asChild><Link to="/setores"><ArrowLeft className="h-5 w-5" /></Link></Button>
+        <Button variant="ghost" size="icon" asChild><Link to="/setores" search={{ specialtyId }}><ArrowLeft className="h-5 w-5" /></Link></Button>
         <div className="flex-1">
           <h1 className="text-xl font-semibold tracking-tight">Gerenciar setores</h1>
         </div>
@@ -185,11 +190,15 @@ function SectorDialog({
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [isCritical, setIsCritical] = useState(initial?.isCritical ?? false);
+  const { specialtyId } = Route.useSearch();
   const createFn = useServerFn(createSector);
   const mut = useMutation({
     mutationFn: async () => {
       if (initial && onUpdate) { await onUpdate({ name, description, isCritical }); }
-      else { await createFn({ data: { name, description: description || null, isCritical } }); }
+      else { 
+        if (!specialtyId) throw new Error("Selecione uma especialidade primeiro.");
+        await createFn({ data: { name, description: description || null, isCritical, specialtyId } }); 
+      }
     },
     onSuccess: () => { setOpen(false); if (!initial) { setName(""); setDescription(""); setIsCritical(false); } onSaved(); },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),

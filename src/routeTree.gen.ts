@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedDadosRouteImport } from './routes/_authenticated/dados'
+import { Route as AuthenticatedEspecialidadesRouteImport } from './routes/_authenticated/especialidades'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedSetoresRouteImport } from './routes/_authenticated/setores'
@@ -45,6 +46,12 @@ const AuthenticatedDadosRoute = AuthenticatedDadosRouteImport.update({
   path: '/dados',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEspecialidadesRoute =
+  AuthenticatedEspecialidadesRouteImport.update({
+    id: '/especialidades',
+    path: '/especialidades',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHistoricoRoute = AuthenticatedHistoricoRouteImport.update({
   id: '/historico',
   path: '/historico',
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/dados': typeof AuthenticatedDadosRoute
+  '/especialidades': typeof AuthenticatedEspecialidadesRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/setores': typeof AuthenticatedSetoresRoute
@@ -96,6 +104,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/dados': typeof AuthenticatedDadosRoute
+  '/especialidades': typeof AuthenticatedEspecialidadesRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/setores': typeof AuthenticatedSetoresRoute
@@ -110,6 +119,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/dados': typeof AuthenticatedDadosRoute
+  '/_authenticated/especialidades': typeof AuthenticatedEspecialidadesRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/setores': typeof AuthenticatedSetoresRoute
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/agenda'
     | '/dados'
+    | '/especialidades'
     | '/historico'
     | '/painel'
     | '/setores'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/agenda'
     | '/dados'
+    | '/especialidades'
     | '/historico'
     | '/painel'
     | '/setores'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/agenda'
     | '/_authenticated/dados'
+    | '/_authenticated/especialidades'
     | '/_authenticated/historico'
     | '/_authenticated/painel'
     | '/_authenticated/setores'
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/dados'
       fullPath: '/dados'
       preLoaderRoute: typeof AuthenticatedDadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/especialidades': {
+      id: '/_authenticated/especialidades'
+      path: '/especialidades'
+      fullPath: '/especialidades'
+      preLoaderRoute: typeof AuthenticatedEspecialidadesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/historico': {
@@ -262,6 +282,7 @@ const AuthenticatedAuditoriaIdRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedDadosRoute: typeof AuthenticatedDadosRoute
+  AuthenticatedEspecialidadesRoute: typeof AuthenticatedEspecialidadesRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedSetoresRoute: typeof AuthenticatedSetoresRoute
@@ -272,6 +293,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedDadosRoute: AuthenticatedDadosRoute,
+  AuthenticatedEspecialidadesRoute: AuthenticatedEspecialidadesRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedSetoresRoute: AuthenticatedSetoresRoute,

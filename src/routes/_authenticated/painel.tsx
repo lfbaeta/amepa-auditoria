@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getDashboardStats, listAudits } from "@/lib/audit.functions";
+import { getDashboardStats, listAudits, listSpecialties } from "@/lib/audit.functions";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { AlertTriangle, BarChart3, ClipboardCheck, Download, FileText, Pencil, Plus, RotateCcw, Save, TrendingUp, X } from "lucide-react";
+import { AlertTriangle, BarChart3, ClipboardCheck, Download, FileText, Pencil, Plus, RotateCcw, Save, TrendingUp, X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useMemo, useState } from "react";
 import { buildCriticalAnalysis, generateCriticalReportPdf } from "@/lib/pdf";
 import { toast } from "sonner";
@@ -19,14 +20,20 @@ export const Route = createFileRoute("/_authenticated/painel")({
 
 function Dashboard() {
   const [days, setDays] = useState(30);
+  const [specialtyId, setSpecialtyId] = useState<string>("all");
+  
   const getStats = useServerFn(getDashboardStats);
   const getAudits = useServerFn(listAudits);
+  const getSpecs = useServerFn(listSpecialties);
 
   const stats = useQuery({
-    queryKey: ["dashboard", days],
-    queryFn: () => getStats({ data: { days } }),
+    queryKey: ["dashboard", days, specialtyId],
+    queryFn: () => getStats({ data: { days, specialtyId: specialtyId === "all" ? undefined : specialtyId } }),
   });
   const audits = useQuery({ queryKey: ["audits"], queryFn: () => getAudits() });
+  const specialties = useQuery({ queryKey: ["specialties"], queryFn: () => getSpecs() });
+
+  const currentSpecialty = specialties.data?.find(s => s.id === specialtyId);
 
   const rows = stats.data?.rows ?? [];
   const overall = stats.data?.overallScore;
@@ -102,14 +109,30 @@ function Dashboard() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Painel crítico</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Setores ordenados por criticidade e não conformidades.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {currentSpecialty ? `Área: ${currentSpecialty.name}` : "Setores ordenados por criticidade e não conformidades."}
+          </p>
         </div>
-        <Button asChild size="sm" className="shrink-0">
-          <Link to="/setores"><Plus className="h-4 w-4 mr-1" /> Nova</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={specialtyId} onValueChange={setSpecialtyId}>
+            <SelectTrigger className="w-[180px] h-9 text-xs">
+              <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Todas as áreas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as áreas</SelectItem>
+              {specialties.data?.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button asChild size="sm" className="shrink-0">
+            <Link to="/especialidades"><Plus className="h-4 w-4 mr-1" /> Nova</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-1.5">
