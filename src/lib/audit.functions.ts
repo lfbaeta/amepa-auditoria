@@ -602,15 +602,27 @@ export const listAudits = createServerFn({ method: "GET" })
 
 export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { days?: number }) => z.object({ days: z.number().int().min(1).max(365).optional() }).parse(d))
+  .inputValidator((d: { days?: number; specialtyId?: string }) => 
+    z.object({ 
+      days: z.number().int().min(1).max(365).optional(),
+      specialtyId: uuid.optional(),
+    }).parse(d)
+  )
   .handler(async ({ data, context }) => {
     const days = data.days ?? 30;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const { data: audits, error } = await context.supabase
+    
+    let query = context.supabase
       .from("audits")
-      .select("sector_id, sector_name, is_critical, conformity_score, c_count, nc_count, na_count, status, audit_date")
+      .select("sector_id, sector_name, is_critical, conformity_score, c_count, nc_count, na_count, status, audit_date, sectors!inner(specialty_id)")
       .eq("status", "finalizada")
       .gte("audit_date", since);
+
+    if (data.specialtyId) {
+      query = query.eq("sectors.specialty_id", data.specialtyId);
+    }
+
+    const { data: audits, error } = await query;
     if (error) throw new Error(error.message);
 
     const bySector = new Map<string, { sectorId: string; name: string; isCritical: boolean; nc: number; c: number; na: number; scores: number[]; audits: number }>();
