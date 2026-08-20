@@ -269,7 +269,7 @@ export const listSpecialties = createServerFn({ method: "GET" })
       .from("profiles")
       .select("organization_id, role")
       .eq("user_id", context.userId)
-      .single();
+      .maybeSingle();
 
     let query = context.supabase
       .from("specialties")
@@ -277,15 +277,13 @@ export const listSpecialties = createServerFn({ method: "GET" })
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     
-    // Se tiver organização, filtrar por ela. Se for auditor, talvez mostrar apenas ativas.
     if (profile?.organization_id) {
-      query = query.eq("organization_id", profile.organization_id);
+      query = query.filter("organization_id", "eq", profile.organization_id);
       if (profile.role === "auditor") {
-        query = query.eq("active", true);
+        query = query.filter("active", "eq", true);
       }
     } else {
-      // Fallback para legado ou usuários sem organização vinculada
-      query = query.eq("user_id", context.userId);
+      query = query.filter("user_id", "eq", context.userId);
     }
 
     const { data, error } = await query;
@@ -299,19 +297,11 @@ export const createSpecialty = createServerFn({ method: "POST" })
     name: string; 
     description?: string | null; 
     icon?: string | null;
-    code?: string | null;
-    color?: string | null;
-    isCritical?: boolean;
-    active?: boolean;
   }) =>
     z.object({
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       icon: z.string().max(50).optional().nullable(),
-      code: z.string().max(20).optional().nullable(),
-      color: z.string().max(30).optional().nullable(),
-      isCritical: z.boolean().optional(),
-      active: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -319,7 +309,7 @@ export const createSpecialty = createServerFn({ method: "POST" })
       .from("profiles")
       .select("organization_id")
       .eq("user_id", context.userId)
-      .single();
+      .maybeSingle();
 
     const { data: row, error } = await context.supabase
       .from("specialties")
@@ -327,12 +317,7 @@ export const createSpecialty = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description ?? null,
         icon: data.icon ?? null,
-        code: data.code ?? null,
-        color: data.color ?? null,
-        is_critical: data.isCritical ?? false,
-        active: data.active ?? true,
         user_id: context.userId,
-        created_by: context.userId,
         organization_id: profile?.organization_id ?? null,
         sort_order: 999,
       })
@@ -349,20 +334,12 @@ export const updateSpecialty = createServerFn({ method: "POST" })
     name: string; 
     description?: string | null; 
     icon?: string | null;
-    code?: string | null;
-    color?: string | null;
-    isCritical?: boolean;
-    active?: boolean;
   }) =>
     z.object({
       id: uuid,
       name: z.string().min(1).max(120),
       description: z.string().max(500).optional().nullable(),
       icon: z.string().max(50).optional().nullable(),
-      code: z.string().max(20).optional().nullable(),
-      color: z.string().max(30).optional().nullable(),
-      isCritical: z.boolean().optional(),
-      active: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -372,10 +349,6 @@ export const updateSpecialty = createServerFn({ method: "POST" })
         name: data.name,
         description: data.description ?? null,
         icon: data.icon ?? null,
-        code: data.code ?? null,
-        color: data.color ?? null,
-        is_critical: data.isCritical,
-        active: data.active,
         updated_at: new Date().toISOString(),
       })
       .eq("id", data.id);
