@@ -58,8 +58,8 @@ function SetoresPage() {
             <Link to="/especialidades"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Setores</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Escolha o setor para iniciar uma nova auditoria.</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{selectedSpec ? selectedSpec.name : "Setores"}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">{selectedSpec?.description || "Escolha o setor para iniciar uma nova auditoria."}</p>
           </div>
         </div>
         <Button asChild size="sm" variant="outline">
