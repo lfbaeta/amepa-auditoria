@@ -184,6 +184,7 @@ export type Database = {
           is_default: boolean
           name: string
           sort_order: number
+          specialty_id: string | null
           user_id: string
         }
         Insert: {
@@ -195,6 +196,7 @@ export type Database = {
           is_default?: boolean
           name: string
           sort_order?: number
+          specialty_id?: string | null
           user_id: string
         }
         Update: {
@@ -204,6 +206,45 @@ export type Database = {
           id?: string
           is_critical?: boolean
           is_default?: boolean
+          name?: string
+          sort_order?: number
+          specialty_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sectors_specialty_id_fkey"
+            columns: ["specialty_id"]
+            isOneToOne: false
+            referencedRelation: "specialties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      specialties: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
           name?: string
           sort_order?: number
           user_id?: string
@@ -216,6 +257,7 @@ export type Database = {
     }
     Functions: {
       seed_default_sectors: { Args: { p_user: string }; Returns: undefined }
+      seed_default_specialties: { Args: { p_user: string }; Returns: undefined }
     }
     Enums: {
       audit_status: "em_andamento" | "finalizada"
