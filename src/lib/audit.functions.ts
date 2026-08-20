@@ -635,9 +635,23 @@ export const deleteAudit = createServerFn({ method: "POST" })
 export const listAudits = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    const { data: profile } = await (context.supabase as any)
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    let query = context.supabase
       .from("audits")
-      .select("id, sector_id, sector_name, is_critical, auditor_name, audit_date, status, conformity_score, c_count, nc_count, na_count, created_at, finished_at")
+      .select("id, sector_id, sector_name, is_critical, auditor_name, audit_date, status, conformity_score, c_count, nc_count, na_count, created_at, finished_at");
+    
+    if (profile?.organization_id) {
+      query = query.filter("organization_id", "eq", profile.organization_id);
+    } else {
+      query = query.filter("user_id", "eq", context.userId);
+    }
+
+    const { data, error } = await query
       .order("audit_date", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -657,14 +671,26 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const days = data.days ?? 30;
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     
+    const { data: profile } = await (context.supabase as any)
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
     let query = context.supabase
       .from("audits")
       .select("sector_id, sector_name, is_critical, conformity_score, c_count, nc_count, na_count, status, audit_date, sectors!inner(specialty_id)")
       .eq("status", "finalizada")
       .gte("audit_date", since);
 
+    if (profile?.organization_id) {
+      query = query.filter("organization_id", "eq", profile.organization_id);
+    } else {
+      query = query.filter("user_id", "eq", context.userId);
+    }
+
     if (data.specialtyId) {
-      query = query.eq("sectors.specialty_id", data.specialtyId);
+      query = query.filter("sectors.specialty_id", "eq", data.specialtyId);
     }
 
     const { data: audits, error } = await query;
@@ -673,12 +699,12 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const bySector = new Map<string, { sectorId: string; name: string; isCritical: boolean; nc: number; c: number; na: number; scores: number[]; audits: number }>();
     for (const a of audits ?? []) {
       const k = a.sector_id;
-      const cur = bySector.get(k) ?? { sectorId: k, name: a.sector_name, isCritical: !!a.is_critical, nc: 0, c: 0, na: 0, scores: [], audits: 0 };
-      cur.nc += a.nc_count ?? 0;
-      cur.c += a.c_count ?? 0;
-      cur.na += a.na_count ?? 0;
+      const cur = bySector.get(k) ?? { sectorId: k, name: a.sector_name, isCritical: !!(a as any).is_critical, nc: 0, c: 0, na: 0, scores: [], audits: 0 };
+      cur.nc += (a as any).nc_count ?? 0;
+      cur.c += (a as any).c_count ?? 0;
+      cur.na += (a as any).na_count ?? 0;
       cur.audits += 1;
-      if (a.conformity_score != null) cur.scores.push(Number(a.conformity_score));
+      if ((a as any).conformity_score != null) cur.scores.push(Number((a as any).conformity_score));
       bySector.set(k, cur);
     }
     const rows = Array.from(bySector.values()).map((s) => ({
@@ -697,5 +723,29 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const overallScore = denom === 0 ? null : Math.round((totals.c / denom) * 10000) / 100;
 
     return { days, rows, totals, overallScore };
+  });
+
+export const getOrganizationProfile = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: profile, error: pErr } = await context.supabase
+      .from("profiles")
+      .select("*, organizations(*)")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    return profile;
+  });
+
+export const updateTheme = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { theme: string }) => z.object({ theme: z.string() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("profiles")
+      .update({ theme: data.theme })
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
