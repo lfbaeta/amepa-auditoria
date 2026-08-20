@@ -109,14 +109,30 @@ function Dashboard() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Painel crítico</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Setores ordenados por criticidade e não conformidades.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {currentSpecialty ? `Área: ${currentSpecialty.name}` : "Setores ordenados por criticidade e não conformidades."}
+          </p>
         </div>
-        <Button asChild size="sm" className="shrink-0">
-          <Link to="/setores"><Plus className="h-4 w-4 mr-1" /> Nova</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={specialtyId} onValueChange={setSpecialtyId}>
+            <SelectTrigger className="w-[180px] h-9 text-xs">
+              <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Todas as áreas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as áreas</SelectItem>
+              {specialties.data?.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button asChild size="sm" className="shrink-0">
+            <Link to="/especialidades"><Plus className="h-4 w-4 mr-1" /> Nova</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-1.5">
