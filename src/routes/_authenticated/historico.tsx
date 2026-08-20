@@ -22,7 +22,7 @@ function HistoricoPage() {
   const fetchA = useServerFn(listAudits);
   const fetchS = useServerFn(listSectors);
   const audits = useQuery({ queryKey: ["audits"], queryFn: () => fetchA() });
-  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchS() });
+  const sectors = useQuery({ queryKey: ["sectors"], queryFn: () => fetchS({ data: {} }) });
   const [sectorId, setSectorId] = useState<string>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
