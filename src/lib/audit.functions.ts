@@ -305,13 +305,13 @@ export const createSpecialty = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { data: profile } = await context.supabase
+    const { data: profile } = await (context.supabase as any)
       .from("profiles")
       .select("organization_id")
       .eq("user_id", context.userId)
       .maybeSingle();
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("specialties")
       .insert({
         name: data.name,
@@ -343,7 +343,7 @@ export const updateSpecialty = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("specialties")
       .update({
         name: data.name,
@@ -361,7 +361,7 @@ export const deleteSpecialty = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => z.object({ id: uuid }).parse(d))
   .handler(async ({ data, context }) => {
     // Verificar se existem auditorias vinculadas (regra: excluir apenas sem histórico)
-    const { count } = await context.supabase
+    const { count } = await (context.supabase as any)
       .from("audits")
       .select("id", { count: "exact", head: true })
       .eq("specialty_id", data.id);
@@ -370,7 +370,7 @@ export const deleteSpecialty = createServerFn({ method: "POST" })
       throw new Error("Não é possível excluir uma especialidade que já possui auditorias registradas. Desative-a em vez disso.");
     }
 
-    const { error } = await context.supabase.from("specialties").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).from("specialties").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
