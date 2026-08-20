@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 const navItems = [
   { to: "/painel", label: "Painel", icon: Gauge },
-  { to: "/setores", label: "Setores", icon: ClipboardList },
+  { to: "/especialidades", label: "Auditar", icon: ClipboardList },
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/historico", label: "Histórico", icon: History },
   { to: "/dados", label: "Dados", icon: Database },
