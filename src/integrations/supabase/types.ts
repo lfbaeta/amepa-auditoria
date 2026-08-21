@@ -27,6 +27,7 @@ export type Database = {
           na_count: number
           nc_count: number
           notes: string | null
+          organization_id: string | null
           sector_id: string
           sector_name: string
           sector_responsible: string | null
@@ -45,6 +46,7 @@ export type Database = {
           na_count?: number
           nc_count?: number
           notes?: string | null
+          organization_id?: string | null
           sector_id: string
           sector_name: string
           sector_responsible?: string | null
@@ -63,6 +65,7 @@ export type Database = {
           na_count?: number
           nc_count?: number
           notes?: string | null
+          organization_id?: string | null
           sector_id?: string
           sector_name?: string
           sector_responsible?: string | null
@@ -70,6 +73,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "audits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "audits_sector_id_fkey"
             columns: ["sector_id"]
@@ -209,6 +219,7 @@ export type Database = {
           code: string | null
           created_at: string
           id: string
+          organization_id: string | null
           sector_id: string
           sort_order: number
           text: string
@@ -219,6 +230,7 @@ export type Database = {
           code?: string | null
           created_at?: string
           id?: string
+          organization_id?: string | null
           sector_id: string
           sort_order?: number
           text: string
@@ -229,12 +241,20 @@ export type Database = {
           code?: string | null
           created_at?: string
           id?: string
+          organization_id?: string | null
           sector_id?: string
           sort_order?: number
           text?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "questions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "questions_sector_id_fkey"
             columns: ["sector_id"]
@@ -249,6 +269,7 @@ export type Database = {
           audit_id: string
           comment: string | null
           id: string
+          organization_id: string | null
           question_code_snapshot: string | null
           question_id: string
           question_text_snapshot: string
@@ -261,6 +282,7 @@ export type Database = {
           audit_id: string
           comment?: string | null
           id?: string
+          organization_id?: string | null
           question_code_snapshot?: string | null
           question_id: string
           question_text_snapshot: string
@@ -273,6 +295,7 @@ export type Database = {
           audit_id?: string
           comment?: string | null
           id?: string
+          organization_id?: string | null
           question_code_snapshot?: string | null
           question_id?: string
           question_text_snapshot?: string
@@ -287,6 +310,13 @@ export type Database = {
             columns: ["audit_id"]
             isOneToOne: false
             referencedRelation: "audits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "responses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -307,6 +337,7 @@ export type Database = {
           is_critical: boolean
           is_default: boolean
           name: string
+          organization_id: string | null
           sort_order: number
           specialty_id: string | null
           user_id: string
@@ -319,6 +350,7 @@ export type Database = {
           is_critical?: boolean
           is_default?: boolean
           name: string
+          organization_id?: string | null
           sort_order?: number
           specialty_id?: string | null
           user_id: string
@@ -331,11 +363,19 @@ export type Database = {
           is_critical?: boolean
           is_default?: boolean
           name?: string
+          organization_id?: string | null
           sort_order?: number
           specialty_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sectors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sectors_specialty_id_fkey"
             columns: ["specialty_id"]
@@ -352,6 +392,7 @@ export type Database = {
           icon: string | null
           id: string
           name: string
+          organization_id: string | null
           sort_order: number
           user_id: string
         }
@@ -361,6 +402,7 @@ export type Database = {
           icon?: string | null
           id?: string
           name: string
+          organization_id?: string | null
           sort_order?: number
           user_id: string
         }
@@ -370,16 +412,26 @@ export type Database = {
           icon?: string | null
           id?: string
           name?: string
+          organization_id?: string | null
           sort_order?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "specialties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_my_org: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

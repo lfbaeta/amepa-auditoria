@@ -38,11 +38,32 @@ function AuthPage() {
         if (error) throw error;
         navigate({ to: "/painel", replace: true });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email, password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
+        
+        // Criar organização e perfil inicial se o cadastro for bem sucedido
+        if (data.user) {
+          const { data: org, error: orgErr } = await supabase
+            .from("organizations")
+            .insert({ name: `Organização de ${email.split('@')[0]}` })
+            .select()
+            .single();
+          
+          if (!orgErr && org) {
+            await supabase
+              .from("profiles")
+              .insert({
+                user_id: data.user.id,
+                organization_id: org.id,
+                full_name: email,
+                role: "admin"
+              });
+          }
+        }
+
         toast.success("Conta criada. Você já pode entrar.");
         setTab("login");
       }
