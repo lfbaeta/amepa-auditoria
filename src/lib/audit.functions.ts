@@ -407,6 +407,12 @@ export const createSector = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
     const { data: row, error } = await context.supabase
       .from("sectors")
       .insert({
@@ -414,6 +420,7 @@ export const createSector = createServerFn({ method: "POST" })
         description: data.description ?? null,
         user_id: context.userId,
         specialty_id: data.specialtyId,
+        organization_id: profile?.organization_id ?? null,
         sort_order: 999,
         is_critical: data.isCritical ?? false,
       })
