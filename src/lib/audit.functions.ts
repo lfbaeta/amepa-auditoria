@@ -484,13 +484,26 @@ export const createQuestion = createServerFn({ method: "POST" })
     z.object({ sectorId: uuid, text: z.string().min(1).max(600), code: z.string().max(20).optional().nullable() }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
     const { data: max } = await context.supabase
       .from("questions").select("sort_order").eq("sector_id", data.sectorId)
       .order("sort_order", { ascending: false }).limit(1).maybeSingle();
     const nextOrder = (max?.sort_order ?? 0) + 1;
     const { data: row, error } = await context.supabase
       .from("questions")
-      .insert({ sector_id: data.sectorId, user_id: context.userId, text: data.text, code: data.code ?? null, sort_order: nextOrder })
+      .insert({ 
+        sector_id: data.sectorId, 
+        user_id: context.userId, 
+        text: data.text, 
+        code: data.code ?? null, 
+        sort_order: nextOrder,
+        organization_id: profile?.organization_id ?? null
+      })
       .select().single();
     if (error) throw new Error(error.message);
     return row;
