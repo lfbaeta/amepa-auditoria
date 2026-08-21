@@ -576,6 +576,7 @@ export const startAudit = createServerFn({ method: "POST" })
       audit_id: audit.id,
       question_id: q.id,
       user_id: context.userId,
+      organization_id: profile?.organization_id ?? null,
       question_text_snapshot: q.text,
       question_code_snapshot: q.code,
       sort_order: q.sort_order,
