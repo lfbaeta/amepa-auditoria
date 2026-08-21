@@ -542,6 +542,12 @@ export const startAudit = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
     const { data: sector, error: se } = await context.supabase
       .from("sectors").select("id, name, is_critical").eq("id", data.sectorId).single();
     if (se || !sector) throw new Error("Setor não encontrado");
@@ -556,6 +562,7 @@ export const startAudit = createServerFn({ method: "POST" })
     const { data: audit, error: ae } = await context.supabase
       .from("audits").insert({
         user_id: context.userId,
+        organization_id: profile?.organization_id ?? null,
         sector_id: sector.id,
         sector_name: sector.name,
         is_critical: sector.is_critical ?? false,
